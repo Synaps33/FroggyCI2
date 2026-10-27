@@ -1,76 +1,35 @@
-/*
- * mouse.cpp
- * This file is part of OCI (Open Chicken Invaders)
- *
- * Copyright (C) 2010-2014 - Aleksey Konovalov (konovalov.aleks@gmail.com)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Library General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Library General Public License for more details.
- *
- *  You should have received a copy of the GNU Library General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
 #include "mouse.h"
-
-#ifndef USE_SFML
-
-#include "vector2.h"
 #include "window.h"
 
 namespace oci {
 
-bool Mouse::isButtonPressed(Mouse::Button button) {
-    return (SDL_GetMouseState(nullptr, nullptr) & button) != 0;
+static int s_mouse_x = -100;
+static int s_mouse_y = -100;
+static bool s_mouse_buttons[Mouse::ButtonCount] = { false };
+
+bool Mouse::isButtonPressed(Button button) {
+    if(button >= 0 && button < ButtonCount)
+        return s_mouse_buttons[button];
+    return false;
 }
 
-inline Vector2i GetMousePos() {
-    Vector2i result;
-    SDL_GetMouseState(&result.x, &result.y);
-    return result;
+Vector2i Mouse::getPosition(const Window& /*window*/) {
+    return Vector2i(s_mouse_x, s_mouse_y);
 }
 
-inline int screenToLogical(const Window& wnd, int s) {
-#ifdef ANDROID
-    return (s * wnd.GetHeight()) / wnd.GetRealHeight();
-#else
-    (void)wnd;
-    return s;
-#endif
+void Mouse::setPosition(const Vector2i& position, const Window& /*window*/) {
+    s_mouse_x = position.x;
+    s_mouse_y = position.y;
 }
 
-inline int logicalToScreen(const Window& wnd, int s) {
-#ifdef ANDROID
-    return (s * wnd.GetHeight()) / wnd.GetRealHeight();
-#else
-    (void)wnd;
-    return s;
-#endif
+void Mouse::SetPosition(int x, int y) {
+    s_mouse_x = x;
+    s_mouse_y = y;
 }
 
-Vector2i Mouse::getPosition(const Window& relativeTo) {
-    Vector2i pos = GetMousePos();
-    return { screenToLogical(relativeTo, pos.x),
-             screenToLogical(relativeTo, pos.y) };
-}
-
-void Mouse::setPosition(const Vector2i& pos, const Window& relativeTo)
-{
-    SDL_WarpMouseInWindow(
-        relativeTo.SDLHandle(),
-        logicalToScreen(relativeTo, pos.x),
-        logicalToScreen(relativeTo, pos.y)
-    );
+void Mouse::SetButtonPressed(Button button, bool pressed) {
+    if(button >= 0 && button < ButtonCount)
+        s_mouse_buttons[button] = pressed;
 }
 
 } // namespace oci
-
-#endif //USE_SFML

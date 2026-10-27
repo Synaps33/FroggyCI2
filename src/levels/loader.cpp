@@ -22,6 +22,7 @@
 #include "loader.h"
 
 #include <core/critical_error.h>
+#include <resources/path_helper.h>
 
 #include <tinyxml2.h>
 
@@ -39,23 +40,24 @@ namespace levels {
 }
 
 Loader::Loader() {
-    if(xml_file.LoadFile("res/description.xml") != tinyxml2::XML_SUCCESS) [[unlikely]]
-        CriticalError(xml_file.ErrorStr());
+    std::string path = ResolvePath("res/description.xml");
+    if(xml_file.LoadFile(path.c_str()) != tinyxml2::XML_SUCCESS) 
+        CriticalError("Could not load \"res/description.xml\" at \"", path, "\": ", xml_file.ErrorStr());
     tinyxml2::XMLNode* node = xml_file.FirstChildElement("ResourcesList");
-    if(!node) [[unlikely]]
+    if(!node) 
         CriticalError("cannot find node \"ResourceList\"");
     ResourcesList = node->ToElement();
-    if(!ResourcesList) [[unlikely]]
+    if(!ResourcesList) 
         CriticalError("node \"ResourceList\" is not xml element");
 }
 
 void Loader::LoadLevel(const char* levelname) {
     assert(ResourcesList);
     tinyxml2::XMLNode* level_node = ResourcesList->FirstChildElement(levelname);
-    if(!level_node) [[unlikely]]
+    if(!level_node) 
         LevelLoadFatalError(levelname, "cannot find level element");
     tinyxml2::XMLElement* level = level_node->ToElement();
-    if(!level) [[unlikely]]
+    if(!level) 
         LevelLoadFatalError(levelname, "level node is not xml element");
 
     std::set<std::string> sprites_list, sounds_list;

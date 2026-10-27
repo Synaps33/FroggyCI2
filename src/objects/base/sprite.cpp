@@ -27,14 +27,15 @@
 #include <core/texture.h>
 #include <core/vector2.h>
 #include <core/window.h>
+#include <core/boot_log.h>
 #include <resources/loader.h>
+#include <resources/path_helper.h>
 #include <utils/cache.h>
 
 #include <tinyxml2.h>
 
 #include <cassert>
 #include <cstdlib>
-#include <filesystem>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -71,8 +72,9 @@ namespace {
             Sprite::SpriteData data;
 
             std::cout << "Loading sprite \"" << name << '"' << std::endl;
-            std::ifstream f(std::filesystem::path("res/images/") / name, std::ios_base::binary);
-            if(!f) [[unlikely]]
+            std::string path = ResolvePath("res/images/" + std::string(name));
+            std::ifstream f(path.c_str(), std::ios_base::binary);
+            if(!f) 
                 CriticalError("file \"", name, "\" not found");
             std::string image_name;
             char c[2];
@@ -80,7 +82,7 @@ namespace {
                 image_name += c[0];
             std::cout << image_name << std::endl;
             Image img;
-            if(!img.loadFromFile("res/images/" + image_name)) [[unlikely]]
+            if(!img.loadFromFile(ResolvePath("res/images/" + image_name))) 
                 CriticalError("cannot load image \"", image_name, '"');
 
             unsigned char draw_type;
@@ -131,7 +133,7 @@ namespace {
                         anim.info.need_reverse = false;
                         anim.info.need_repeat = false;
                         break;
-                    default: [[unlikely]]
+                    default: 
                         CriticalError("unknown animation mode (", mode, ')');
                 };
                 #ifdef DEBUG_SPRITE
@@ -152,7 +154,7 @@ namespace {
                     for(int t = 0; t < n; ++t) {
                         anim.images.emplace_back();
                         Texture& tex = anim.images.back();
-                        if(!tex.loadFromImage(img, IntRect(left, top, width, height))) [[unlikely]]
+                        if(!tex.loadFromImage(img, IntRect(left, top, width, height))) 
                             CriticalError("Unable to create a texture");
                         #ifdef DEBUG_SPRITE
                         std::cout << "\t\t[" << left << ", " << top << ", "
@@ -190,10 +192,10 @@ namespace {
                     const char* filename = frame->Attribute("name");
                     if(filename) {
                         std::vector<char> data = resources::ResourceLoader::Instance().GetData(filename);
-                        if(data.empty()) [[unlikely]]
+                        if(data.empty()) 
                             CriticalError("Image resource \"", filename, "\" is empty");
                         Image img;
-                        if(!img.loadFromMemory(&data[0], data.size())) [[unlikely]]
+                        if(!img.loadFromMemory(&data[0], data.size())) 
                             CriticalError("Could not open image resource \"", filename, '"');
                         const char* colorkey = frame->Attribute("colorkey");
                         if(colorkey) {
@@ -203,7 +205,7 @@ namespace {
                                                           ck & 0xFF));
                         }
                         Texture tex;
-                        if(!tex.loadFromImage(img)) [[unlikely]]
+                        if(!tex.loadFromImage(img)) 
                             CriticalError("Unable to create a texture");
                         anim.images.push_back(std::move(tex));
                     }
@@ -224,9 +226,13 @@ namespace {
 
     public:
         Sprite::SpriteData operator()(std::string_view name) {
+            BootLog("sprite %.*s", (int)name.size(), name.data());
             tinyxml2::XMLDocument xml;
-            if(xml.LoadFile((std::filesystem::path("res/sprites/") / name).string().c_str()) != tinyxml2::XML_SUCCESS) [[unlikely]]
-                CriticalError("sprite \"", name, "\" not found");
+            std::string path = ResolvePath("res/sprites/" + std::string(name));
+            if(xml.LoadFile(path.c_str()) != tinyxml2::XML_SUCCESS) {
+                BootLog("sprite XML FAILED: %s", path.c_str());
+                CriticalError("sprite \"", name, "\" not found at \"", path, "\"");
+            }
             const tinyxml2::XMLNode* root = xml.FirstChildElement("sprite");
             if(!root)
                 CriticalError("cannot find root tag \"sprite\" in file \"", name, '"');
@@ -265,7 +271,7 @@ void Sprite::Init(std::string_view filename) {
     assert(mData);
     assert(!mData->empty());
     setTexture(mData->front().images.front(), true);
-    [[maybe_unused]] bool res = SetState(0);
+     bool res = SetState(0);
     assert(res);
 }
 
@@ -300,7 +306,7 @@ std::size_t Sprite::CurrentFrame() const {
 }
 
 bool Sprite::SetFrame(std::size_t frame) {
-    if(frame >= FramesCount()) [[unlikely]]
+    if(frame >= FramesCount()) 
         CriticalError("Frames count = ", FramesCount(), ", but selected frame ", frame);
     mCurrentFrame = frame;
     assert(mData);

@@ -24,6 +24,7 @@
 #include "factory.h"
 #include "game_level.h"
 #include "level.h"
+#include "wave_settings.h"
 #include <context/object_storage.h>
 #include <core/vector2.h>
 #include <core/window.h>
@@ -31,50 +32,80 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <string>
 #include <string_view>
 
 namespace oci {
 namespace levels {
 
-/// Скорость движения стаи
-static const float FLOCK_SPEED = 1.0f;
-/// Расстояние между курами в линейке при влёте
-static const float LINE_CELL_HEIGHT = 60.0f;
+static inline std::string int_to_str(int v) {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", v);
+    return std::string(b);
+}
 
-/// Начальная координата Y куры вычисляется по формуле: y = -x * CreateDX - y * CreateDY
-/// @{
+
+static const float LINE_CELL_HEIGHT = 70.0f;
+
 static const float CreateDX = 80;
 static const float CreateDY = 200;
-/// @}
-/// Размер ячейки в сетке кур
-static const float CellSize = 50;
-/// Смещение ячейки в сетке
-static const float CellOffset = 56;
+static const float CellSize = 60;
+static const float CellOffsetX = 100;
+static const float CellOffsetY = 40;
 
-static Factory::Registrar<Level_1_2> reg1("level_1_2", "game", 0);
-static Factory::Registrar<Level_1_2> reg2("level_1_3", "game", 1);
+static Factory::Registrar<Level_1_2> reg1_2("level_1_2", "game", 2);
+static Factory::Registrar<Level_1_2> reg1_3("level_1_3", "game", 3);
+static Factory::Registrar<Level_1_2> reg2_2("level_2_2", "game", 12);
+static Factory::Registrar<Level_1_2> reg2_3("level_2_3", "game", 13);
+static Factory::Registrar<Level_1_2> reg3_2("level_3_2", "game", 22);
+static Factory::Registrar<Level_1_2> reg3_3("level_3_3", "game", 23);
+static Factory::Registrar<Level_1_2> reg4_2("level_4_2", "game", 32);
+static Factory::Registrar<Level_1_2> reg4_3("level_4_3", "game", 33);
+static Factory::Registrar<Level_1_2> reg5_2("level_5_2", "game", 42);
+static Factory::Registrar<Level_1_2> reg5_3("level_5_3", "game", 43);
+static Factory::Registrar<Level_1_2> reg6_2("level_6_2", "game", 52);
+static Factory::Registrar<Level_1_2> reg6_3("level_6_3", "game", 53);
+static Factory::Registrar<Level_1_2> reg7_2("level_7_2", "game", 62);
+static Factory::Registrar<Level_1_2> reg7_3("level_7_3", "game", 63);
+static Factory::Registrar<Level_1_2> reg8_2("level_8_2", "game", 72);
+static Factory::Registrar<Level_1_2> reg8_3("level_8_3", "game", 73);
+static Factory::Registrar<Level_1_2> reg9_2("level_9_2", "game", 82);
+static Factory::Registrar<Level_1_2> reg9_3("level_9_3", "game", 83);
+static Factory::Registrar<Level_1_2> reg10_2("level_10_2", "game", 92);
+static Factory::Registrar<Level_1_2> reg10_3("level_10_3", "game", 93);
 
-void Level_1_2::Init(int Step) {
+void Level_1_2::Init(int /*wave*/) {
     GameLevel::Init("level_1_1");
+    const WaveSettings& settings = CurrentWave();
     mode = 0;
-    dx = FLOCK_SPEED;
+    dx = settings.flock_speed + 0.03f * (settings.wave - 1);
+    if((settings.round + settings.wave) % 2 == 0)
+        dx = -dx;
+    mWave = (settings.round - 1) * 10 + settings.wave;
+    const int health = settings.chicken_health + (settings.wave - 1) / 4;
+    const int period = 800 - (settings.round - 1) * 15;
+    const int variant = (settings.round + settings.wave) % 3;
+    const int rows = 4 + variant;
+    const int cols = 7 + variant;
 
-    for(int y = 0; y < 5; ++y)
-        for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < rows; ++y)
+        for(int x = 0; x < cols; ++x) {
             mChickens.push_back(
                 Storage().CreateObject<LevelChicken>(
                     y % 2 ? CellSize : Window::Instance().getSize().x - CellSize,
-                    LINE_CELL_HEIGHT * (1 + y), x, y, 0, -(x * CreateDX + y * CreateDY)
+                    LINE_CELL_HEIGHT * (1 + y), x, y, 0, -(x * CreateDX + y * CreateDY),
+                    settings.chicken_type, health, period
                 )
             );
         }
-    if (!Step)
-        ShowLevelInfo("2", "classic invasion");
-    else
-        ShowLevelInfo("3", "one more time");
+    std::string w_str = int_to_str(mWave);
+    ShowLevelInfo(w_str.c_str(), WaveName(settings.round, settings.wave,
+                                            settings.wave == 2 ? "classic invasion" : "one more time"));
 }
 
 namespace {
+
+
     class MoveAndCalcEnemiesFunctor {
         int& count;
     public:
@@ -87,8 +118,8 @@ namespace {
                            (enemy.Y - enemy.getPosition().y) / 8);
                 if(std::abs(enemy.X - enemy.getPosition().x) < 1 &&
                    std::abs(enemy.Y - enemy.getPosition().y) < 1) {
-                    enemy.Y = enemy.yPos * CellSize + CellOffset;
-                    enemy.X = enemy.xPos * CellSize + CellOffset;
+                    enemy.Y = enemy.yPos * CellSize + CellOffsetY;
+                    enemy.X = enemy.xPos * CellSize + CellOffsetX;
                     enemy.mode++;
                 }
             }
@@ -140,7 +171,7 @@ void Level_1_2::Run() {
             float xmin = wnd_size.x * 2.0f;
             float xmax = -static_cast<float>(wnd_size.x);
             for_each(mChickens, DetermineFlockBoundsFunctor(xmax, xmin));
-            if(xmax + dx > wnd_size.x - CellSize || xmin + dx < CellSize)
+            if(xmax + dx > wnd_size.x - 32 || xmin + dx < 32)
                 dx = -dx;
             for_each(mChickens, MoveChickenFunctor(dx));
         } break;

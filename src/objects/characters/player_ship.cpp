@@ -140,6 +140,22 @@ void PlayerShip::CreateShield() {
     mShield = Storage().CreateObject<Shield>(getPosition());
 }
 
+void PlayerShip::ExportGun(int& type, int& level) const {
+    type = static_cast<int>(mGun->Type());
+    level = mGun->level;
+}
+
+void PlayerShip::ImportGun(int type, int level) {
+    if(level < 1)
+        level = 1;
+    if(level > 99)
+        level = 99;
+    if(type == gt_Green)
+        mGun.reset(new GreenGun(static_cast<short>(level)));
+    else
+        mGun.reset(new RedGun(static_cast<short>(level)));
+}
+
 int PlayerShip::CollisionWith() const {
     return mShield.expired() ? Constants::CollisionNormal() :
                                Constants::CollisionShield();
@@ -182,6 +198,7 @@ void PlayerShip::OnCollision(const CollisionObjectInfo& collisedWith) {
             }
             break;
     }
+    levels::Manager::Instance().RequestSave();
 }
 
 float PlayerShip::DoGetX() const {
@@ -311,7 +328,7 @@ void PlayerShip::SelectGun(TGunType gun_type) {
         case gt_Green:
             mGun.reset(new GreenGun(level));
             break;
-        default: [[unlikely]]
+        default: 
             CriticalError("Unknown gun type: ", gun_type);
     }
 }

@@ -1,69 +1,40 @@
-/*
- * texture.h
- * This file is part of OCI (Open Chicken Invaders)
- *
- * Copyright (C) 2010-2014 - Aleksey Konovalov (konovalov.aleks@gmail.com)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Library General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Library General Public License for more details.
- *
- *  You should have received a copy of the GNU Library General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
 #pragma once
 
-#ifdef USE_SFML
-#   include<SFML/Graphics/Texture.hpp>
-#else
-#   include "vector2.h"
-
-#   include <SDL_render.h>
-
-#   include <memory>
-#endif
+#include "vector2.h"
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 namespace oci {
-
-#ifdef USE_SFML
-
-using Texture = sf::Texture;
-
-#else
 
 class Image;
 
 class Texture {
 public:
-    Texture() = default;
-    Texture(Texture&&) = default;
-    Texture& operator= (Texture&&) = default;
+    Texture();
+    ~Texture() = default;
 
-    bool loadFromImage(const Image&);
+    bool loadFromImage(const Image& img);
 
     Vector2u getSize() const;
 
-    SDL_Texture* SDLObject() const noexcept { return mTexture.get(); }
+    int getWidth() const noexcept { return mWidth; }
+    int getHeight() const noexcept { return mHeight; }
+    int getLogicalWidth() const noexcept { return mLogicalWidth; }
+    int getLogicalHeight() const noexcept { return mLogicalHeight; }
+
+    const uint16_t* getPixels() const noexcept { return mPixels ? mPixels->data() : nullptr; }
+    bool hasColorKey() const noexcept { return mHasColorKey; }
+    uint16_t getColorKey() const noexcept { return mColorKey; }
 
 private:
-    struct TextureDeleter {
-        void operator() (SDL_Texture* texture) {
-            if(texture)
-                SDL_DestroyTexture(texture);
-        }
-    };
-
-    std::unique_ptr<SDL_Texture, TextureDeleter> mTexture;
+    int mWidth;
+    int mHeight;
+    int mLogicalWidth;
+    int mLogicalHeight;
+    std::shared_ptr<std::vector<uint16_t>> mPixels;
+    bool mHasColorKey;
+    uint16_t mColorKey;
 };
-
-#endif
 
 } // namespace oci

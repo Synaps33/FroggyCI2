@@ -92,14 +92,14 @@ public:
         VerticalArr::const_iterator viter =
             std::find_if(vertical.begin(), vertical.end(),
                          PairFilter<Text::VerticalAlign>(va));
-        if(viter == vertical.end()) [[unlikely]]
+        if(viter == vertical.end()) 
             CriticalError("unknown vertical align type");
         mVAligner = viter->second;
 
         HorizontalArr::const_iterator hiter =
             std::find_if(horizontal.begin(), horizontal.end(),
                         PairFilter<Text::HorizontalAlign>(ha));
-        if(hiter == horizontal.end()) [[unlikely]]
+        if(hiter == horizontal.end()) 
             CriticalError("unknown horizontal align type");
         mHAligner = hiter->second;
     }

@@ -20,6 +20,7 @@
  */
 
 #include "manager.h"
+#include <string>
 
 // IWYU pragma: no_include <__hash_table>
 #include <cassert>
@@ -32,14 +33,18 @@ class Context;
 Manager Manager::mInstance;
 
 Context& Manager::GetContext(std::string_view context_name) {
-    return mContexts[context_name];
+    return mContexts[std::string(context_name)];
 }
 
 void Manager::KillContext(std::string_view context_name) {
-    auto iter = mContexts.find(context_name);
+    auto iter = mContexts.find(std::string(context_name));
     if (iter != mContexts.end()) {
-        assert(&iter->second != mActiveContext);
-        mContexts.erase(context_name);
+        // Frontends may issue a reset while this context is active (e.g. the
+        // user is in the menu). Clear the active pointer first instead of
+        // asserting; the caller is responsible for installing a new context.
+        if (&iter->second == mActiveContext)
+            mActiveContext = nullptr;
+        mContexts.erase(iter);
     }
 }
 

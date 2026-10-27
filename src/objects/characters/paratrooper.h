@@ -39,7 +39,8 @@ class Paratrooper : public AnimatedCollisionObject, public Active {
 public:
     typedef std::function<void(const std::weak_ptr<RandomChicken>&)> CreateRndChickenCallbackFunc;
 
-    void Init(const Vector2f& position, float speed, int p, short health);
+    void Init(const Vector2f& position, float speed, int p, short health,
+              Chicken::Type type = Chicken::tCyan);
 
     virtual CollisionType GetCollisionType() const override { return ctChicken; };
     virtual int CollisionWith() const override { return ctPlayerShip | ctFriendBullets; };
@@ -54,6 +55,8 @@ private:
     int MaxBombingPeriod;
     int time;
     float speed;
+    float mSpawnSpeed;
+    Chicken::Type mChickenType;
     CreateRndChickenCallbackFunc mOnCreateRandomChickenCallback;
 };
 

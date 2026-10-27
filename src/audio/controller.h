@@ -33,6 +33,8 @@ public:
 
     virtual ~Controller() {}
     virtual bool IsPlaying() const = 0;
+    /// Stops playback (used when the owning game object goes away).
+    virtual void Stop() {}
 };
 
 } // namespace audio

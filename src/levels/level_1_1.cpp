@@ -24,6 +24,7 @@
 #include "factory.h"
 #include "game_level.h"
 #include "level.h"
+#include "wave_settings.h"
 #include <constants.h>
 #include <context/object_storage.h>
 #include <core/vector2.h>
@@ -35,36 +36,62 @@
 #include <objects/text/text.h>
 
 #include <cstdlib>
+#include <string>
 #include <string_view>
 
 namespace oci {
 namespace levels {
 
+static inline std::string int_to_str(int v) {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", v);
+    return std::string(b);
+}
+
+
 using namespace objects;
 
 namespace {
-    /// Начальное положение куры (по Y)
-    const float INITIAL_CHICKEN_Y_POS = -30.0f;
-    /// Скорость куры
-    const float CHICKEN_SPEED = 2.0f;
 
-    Factory::Registrar<Level_1_1> reg("level_1_1", "game");
+
+    const float INITIAL_CHICKEN_Y_POS = -30.0f;
+
+    Factory::Registrar<Level_1_1> reg1("level_1_1", "game", 1);
+    Factory::Registrar<Level_1_1> reg2("level_2_1", "game", 11);
+    Factory::Registrar<Level_1_1> reg3("level_3_1", "game", 21);
+    Factory::Registrar<Level_1_1> reg4("level_4_1", "game", 31);
+    Factory::Registrar<Level_1_1> reg5("level_5_1", "game", 41);
+    Factory::Registrar<Level_1_1> reg6("level_6_1", "game", 51);
+    Factory::Registrar<Level_1_1> reg7("level_7_1", "game", 61);
+    Factory::Registrar<Level_1_1> reg8("level_8_1", "game", 71);
+    Factory::Registrar<Level_1_1> reg9("level_9_1", "game", 81);
+    Factory::Registrar<Level_1_1> reg10("level_10_1", "game", 91);
 } // namespace
 
-void Level_1_1::Init() {
+void Level_1_1::Init(int /*wave*/) {
     GameLevel::Init("level_1_1");
+    const WaveSettings& settings = CurrentWave();
     mMode = 0;
-    mChicken = Storage().CreateObject<RandomChicken>(
-                    Vector2f(static_cast<float>(std::rand() % Window::Instance().getSize().x),
-                             INITIAL_CHICKEN_Y_POS), 100, Chicken::tRed, 1, CHICKEN_SPEED);
+    mWave = (settings.round - 1) * 10 + settings.wave;
+    mRound = settings.round;
+    mWaveNo = settings.wave;
+    const int health = settings.chicken_health + (settings.wave - 1) / 4;
+    const float speed = settings.chicken_speed + 0.05f * (settings.wave - 1);
+    const int count = 1 + (settings.round - 1) / 3;
+    for(int i = 0; i < count; ++i) {
+        mChickens.push_back(Storage().CreateObject<RandomChicken>(
+            Vector2f(static_cast<float>(std::rand() % Window::Instance().getSize().x),
+                     INITIAL_CHICKEN_Y_POS - i * 45.0f), settings.chicken_period,
+            settings.chicken_type, health, speed));
+    }
 }
 
 void Level_1_1::Run() {
     Level::Run();
-    if(mMode < 50) { // вначале прилетаем, показываем текст
+    if(mMode < 50) {
         ++mMode;
         if(mMode < 40) {
-            if(mMode == 10) {
+            if(mMode == 10 && CurrentWave().round == 1 && CurrentWave().wave == 1) {
                 const int window_center = Window::Instance().getSize().x / 2;
                 Storage().CreateObject<modifiers::Expiring<Text> >(
                     20, "on approach to",
@@ -77,10 +104,17 @@ void Level_1_1::Run() {
                     Font::GetFont("big.xml"),
                     Text::haCenter, Text::vaCenter);
             }
-        } else if(mMode == 50)
-            ShowLevelInfo("1", "first contact");
-    } else if(mChicken.expired())
-        EndLevel();
+        } else if(mMode == 50) {
+            std::string w_str = int_to_str(mWave);
+            ShowLevelInfo(w_str.c_str(), WaveName(mRound, mWaveNo, "first contact"));
+        }
+    } else {
+        bool alive = false;
+        for(const std::weak_ptr<Chicken>& chicken : mChickens)
+            alive = alive || !chicken.expired();
+        if(!alive)
+            EndLevel();
+    }
 }
 
 } // namespace levels

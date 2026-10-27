@@ -45,7 +45,7 @@ public:
 
     template<typename T, typename... Args>
     void Register(std::string_view obj_name, std::string_view context_name, Args&&... args) {
-        [[maybe_unused]] bool ok =
+         bool ok =
             mObjects.emplace(obj_name, std::unique_ptr<IGenerator>(
                 new Generator<T, Args...>(context_name, std::forward<Args>(args)...))).second;
         assert(ok);

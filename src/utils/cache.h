@@ -35,19 +35,16 @@ template<typename T, typename Loader>
 class Cache {
 public:
     T& Get(std::string_view name) {
-        typename Storage::iterator iter = mCache.find(name);
-        if(iter != mCache.end()) [[likely]]
+        std::string key(name);
+        typename Storage::iterator iter = mCache.find(key);
+        if(iter != mCache.end()) 
             return iter->second;
-        const auto [resIter, ok] =
-            mCache.try_emplace(std::string(name), Loader()(name));
-        assert(ok);
-        return resIter->second;
+        auto res = mCache.emplace(std::move(key), Loader()(name));
+        return res.first->second;
     }
 
 private:
-    using Storage = std::unordered_map<
-        std::string, T, TransparentStrHash, TransparentEqual
-    >;
+    using Storage = std::unordered_map<std::string, T>;
     Storage mCache;
 };
 

@@ -27,7 +27,7 @@
 #include <audio/player.h>
 #include <context/object_storage.h>
 
-#include <numbers>
+#include <utils/compat.h>
 #include <string_view>
 
 namespace oci {

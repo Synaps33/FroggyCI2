@@ -62,14 +62,16 @@ void Interface::Init() {
     const Vector2u wndSize = Window::Instance().getSize();
 
     // Top panel
-    Storage().CreateObject<CommonSprite<Visible::dpForeground> >(
-        "hud.xml", Vector2f(wndSize.x - 50, 0));
+    auto top_hud = Storage().CreateObject<CommonSprite<Visible::dpForeground> >(
+        "hud_top.xml", Vector2f(0, 0));
+    top_hud->setPosition(Vector2f(wndSize.x - top_hud->GetWidth() / 2.0f, 0));
     // Bottom panel
-    Storage().CreateObject<CommonSprite<Visible::dpForeground> >(
-        "hud.xml", Vector2f(wndSize.x - 50, wndSize.y));
+    auto bottom_hud = Storage().CreateObject<CommonSprite<Visible::dpForeground> >(
+        "hud_bottom.xml", Vector2f(0, 0));
+    bottom_hud->setPosition(Vector2f(wndSize.x - bottom_hud->GetWidth() / 2.0f, wndSize.y));
     mScoreText = Storage().CreateObject<Text>("0",
-        Vector2f(wndSize.x - 2, 2),
-        Font::GetFont("medium.xml"), Text::haRight, Text::vaTop);
+        Vector2f(wndSize.x - 16, 4),
+        Font::GetFont("score.xml"), Text::haRight, Text::vaTop);
 
     Storage().CreateObject<interface::LivesIndicator>();
     Storage().CreateObject<interface::MissilesIndicator>();

@@ -25,7 +25,6 @@
 #include <objects/base/object.h>
 
 #include <cassert>
-#include <concepts>
 #include <memory>
 #include <unordered_set>
 
@@ -44,20 +43,24 @@ public:
     ObjectStorage(const ObjectStorage&) = delete;
     ObjectStorage& operator= (const ObjectStorage&) = delete;
 
-    template<std::derived_from<objects::Object> T, typename... Values>
+    template<typename T, typename... Values>
     std::shared_ptr<T> CreateObject(Values&&... args) {
         std::shared_ptr<T> obj(std::make_shared<T>());
         obj->mStorage = this;
         obj->Init(std::forward<Values>(args)...);
-        [[maybe_unused]] bool ok = mObjects.insert(obj).second;
+         bool ok = mObjects.insert(obj).second;
         assert(ok);
         RegisterObject(obj);
         return obj;
     }
 
     void KillObject(objects::Object* obj) {
-        if (auto iter = mObjects.find(obj); iter != mObjects.end())
-            mObjects.erase(iter);
+        for (auto iter = mObjects.begin(); iter != mObjects.end(); ++iter) {
+            if (iter->get() == obj) {
+                mObjects.erase(iter);
+                break;
+            }
+        }
     }
 
     template<typename T>

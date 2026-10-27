@@ -23,13 +23,11 @@
 
 #include "../base/visible.h"
 
-#include <concepts>
-
 namespace oci {
 namespace objects {
 namespace modifiers {
 
-template<std::derived_from<objects::Visible> T>
+template<typename T>
 class Hidden : public T {
 public:
 

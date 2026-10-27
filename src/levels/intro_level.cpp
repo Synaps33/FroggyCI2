@@ -34,7 +34,7 @@ void IntroLevel::Init(const char* levelname) {
 }
 
 void IntroLevel::Run() {
-    if(Keyboard::isKeyPressed(Keyboard::Key::Escape))
+    if(Keyboard::isKeyPressed(Keyboard::Key::Escape) || Keyboard::isKeyPressed(Keyboard::Key::Return))
         EndLevel();
     else
         RunIntro();

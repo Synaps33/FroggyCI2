@@ -46,7 +46,7 @@
 #include <cstdlib>
 #include <iterator>
 #include <memory>
-#include <numbers>
+#include <utils/compat.h>
 #include <string_view>
 
 namespace oci {
@@ -139,10 +139,10 @@ void Intro_0::Init() {
 
 void Intro_0::RunIntro() {
     std::shared_ptr<Sprite> ship(mShip.lock());
-    if(!ship) [[unlikely]]
+    if(!ship) 
         CriticalError("Attempt to use a destroyed Ship object");
     std::shared_ptr<Exhaust> exhaust(mExhaust.lock());
-    if(!exhaust) [[unlikely]]
+    if(!exhaust) 
         CriticalError("Attempt to use a destroyed Exhaust object");
     switch(mMode) {
     case 0:

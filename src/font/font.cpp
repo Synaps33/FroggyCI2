@@ -25,13 +25,14 @@
 #include <core/critical_error.h>
 #include <core/image.h>
 #include <core/texture.h>
+#include <core/boot_log.h>
 #include <resources/loader.h>
+#include <resources/path_helper.h>
 #include <utils/cache.h>
 
 #include <tinyxml2.h>
 
 #include <cstring>
-#include <filesystem>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -64,20 +65,24 @@ const Texture& Font::operator[] (char s) const {
 }
 
 void Font::Load(std::string_view name) {
+    BootLog("font %.*s", (int)name.size(), name.data());
     tinyxml2::XMLDocument xml;
-    if(xml.LoadFile((std::filesystem::path("res/fonts/") / name).string().c_str()) != tinyxml2::XML_SUCCESS) [[unlikely]]
-        CriticalError("font \"", name, "\" not found");
+    std::string path = ResolvePath("res/fonts/" + std::string(name));
+    if(xml.LoadFile(path.c_str()) != tinyxml2::XML_SUCCESS) {
+        BootLog("font XML FAILED: %s", path.c_str());
+        CriticalError("font \"", name, "\" not found at \"", path, "\"");
+    }
     const tinyxml2::XMLNode* root = xml.FirstChildElement("font");
-    if(!root) [[unlikely]]
+    if(!root) 
         CriticalError("cannot find root tag \"font\" in file \"", name, "\"");
     for (const tinyxml2::XMLNode* node = root->FirstChildElement(); node; node = node->NextSiblingElement()) {
         const tinyxml2::XMLElement* glyph = node->ToElement();
         if(glyph && glyph->Value() == "glyph"sv) {
             const char* symbol = glyph->Attribute("symbol");
-            if(!symbol || std::strlen(symbol) != 1) [[unlikely]]
+            if(!symbol || std::strlen(symbol) != 1) 
                 CriticalError("Invalid value for attribute \"symbol\" in tag \"glyph\"");
             const char* name = glyph->Attribute("name");
-            if(!name) [[unlikely]]
+            if(!name) 
                 CriticalError("Invalid value for attribute \"name\" in tag \"glyph\"");
             LoadGlyph(*symbol, name);
         }
@@ -91,7 +96,7 @@ void Font::Load(std::string_view name) {
         img.create(sum_width / mTextures.size(), 1, Color::Black);
         img.createMaskFromColor(Color::Black);
         Texture tex;
-        if(!tex.loadFromImage(img)) [[unlikely]]
+        if(!tex.loadFromImage(img)) 
             CriticalError("Unable to create a texture");
         mTextures.insert(std::make_pair(' ', std::move(tex)));
     }
@@ -99,15 +104,15 @@ void Font::Load(std::string_view name) {
 
 void Font::LoadGlyph(char s, std::string_view filename) {
     std::vector<char> data = resources::ResourceLoader::Instance().GetData(filename);
-    if(data.empty()) [[unlikely]]
+    if(data.empty()) 
         CriticalError("Image resource \"", filename, "\" is empty");
     const auto [iter, inserted] = mTextures.insert(std::make_pair(s, Texture()));
     if(inserted) {
         Image img;
-        if(!img.loadFromMemory(&data[0], data.size())) [[unlikely]]
+        if(!img.loadFromMemory(&data[0], data.size())) 
             CriticalError("Cannot load image \"", filename, '"');
         img.createMaskFromColor(Color::Black);
-        if(!iter->second.loadFromImage(img)) [[unlikely]]
+        if(!iter->second.loadFromImage(img)) 
             CriticalError("Unable to create a texture");
     }
 }

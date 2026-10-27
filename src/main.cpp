@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
         context->ProcessCollisions();
         context->Animate();
         context->Draw();
+        MainMenu::ProcessPending();
         Window::Instance().display();
     }
 }

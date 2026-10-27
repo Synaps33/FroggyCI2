@@ -35,7 +35,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iterator>
-#include <numbers>
+#include <utils/compat.h>
 #include <string_view>
 
 namespace oci {

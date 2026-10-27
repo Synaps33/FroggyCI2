@@ -28,11 +28,12 @@
 #include <core/vector2.h>
 #include <core/window.h>
 #include <font/font.h>
+#include <resources/path_helper.h>
 
 #include <tinyxml2.h>
 
-#include <filesystem>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -47,10 +48,11 @@ SubtitleText::SubtitleText() : mCurTask(-1), mCurTaskExpireTime(0) {}
 
 void SubtitleText::Init(std::string_view filename) {
     tinyxml2::XMLDocument xml;
-    if(xml.LoadFile((std::filesystem::path("res/subtitle/") / filename).string().c_str()) != tinyxml2::XML_SUCCESS) [[unlikely]]
-        CriticalError("subtitle \"", filename, "\" not found");
+    std::string path = ResolvePath("res/subtitle/" + std::string(filename));
+    if(xml.LoadFile(path.c_str()) != tinyxml2::XML_SUCCESS) 
+        CriticalError("subtitle \"", filename, "\" not found at \"", path, "\"");
     const tinyxml2::XMLNode* root = xml.FirstChildElement("subtitle");
-    if(!root) [[unlikely]]
+    if(!root) 
         CriticalError("cannot find root tag \"subtitle\" in file \"", filename, '"');
     for (const tinyxml2::XMLNode* node = root->FirstChild(); node; node = node->NextSiblingElement()) {
         const tinyxml2::XMLElement* sentence = node->ToElement();

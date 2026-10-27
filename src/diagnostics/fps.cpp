@@ -48,7 +48,7 @@ void FPSViewer::Run() {
             Clock::now() - mLastFrameTime).count());
     char buf[128] = "Inf";
     if(frame_time != 0)
-        std::snprintf(buf, std::size(buf), "%.2f", 1000.0f / frame_time);
+        snprintf(buf, sizeof(buf), "%.2f", 1000.0f / frame_time);
     mText->SetText(buf);
 }
 

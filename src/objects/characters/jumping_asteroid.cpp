@@ -31,7 +31,7 @@
 // IWYU pragma: no_include <__math/inverse_trigonometric_functions.h>
 #include <cmath>
 #include <cstdlib>
-#include <numbers>
+#include <utils/compat.h>
 
 namespace oci {
 namespace objects {

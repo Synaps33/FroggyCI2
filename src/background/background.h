@@ -99,7 +99,7 @@ private:
         }
 
         DrawPriority GetDrawPriority() const override {
-            return dpForeground;
+            return dpBackground;
         }
     } mSprite;
 

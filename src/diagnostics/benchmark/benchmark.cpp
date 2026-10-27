@@ -31,7 +31,6 @@
 #include <objects/characters/chicken.h>
 
 #include <chrono>
-#include <compare>
 #include <cstdlib>
 #include <iostream>
 #include <ratio>

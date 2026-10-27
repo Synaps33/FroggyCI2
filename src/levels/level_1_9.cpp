@@ -21,60 +21,66 @@
 
 #include "game_level.h"
 #include "level.h"
+#include "wave_settings.h"
 #include <context/object_storage.h>
 #include <core/critical_error.h>
 #include <levels/factory.h>
 #include <objects/characters/ufo.h>
 
 #include <memory>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace oci {
 namespace levels {
 
-/// Бонусный уровень - летит НЛО, в нем бонус
+static inline std::string int_to_str(int v) {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", v);
+    return std::string(b);
+}
+
+
+
+
 class Level_1_9 : public GameLevel {
 public:
-    /**  \param Step        Номер создаваемого уровня
-         \param UFO_speed   Скорость НЛО
-    */
-    void Init(int step) {
+    void Init(int /*wave*/) {
         GameLevel::Init("level_1_9");
-        float ufo_speed = 0;
-        const char* str;
-        switch(step) {
-        case 0:
-            str = "9";
-            ufo_speed = 4;
-            break;
-        case 1:
-            str = "19";
-            ufo_speed = 4.6f;
-            break;
-        case 2:
-            str = "29";
-            ufo_speed = 6;
-            break;
-        default: [[unlikely]]
-            CriticalError("level 1.9: unknown level step (", step, ')');
-        }
-        mUFO = Storage().CreateObject<objects::UFO>(ufo_speed);
-        ShowLevelInfo(str, "bonus");
+        const WaveSettings& settings = CurrentWave();
+        const int wave_number = (settings.round - 1) * 10 + settings.wave;
+        const float ufo_speed = settings.ufo_speed + 0.15f * settings.wave;
+        const int count = 1 + (settings.round - 1) / 4;
+        for(int i = 0; i < count; ++i)
+            mUFOs.push_back(Storage().CreateObject<objects::UFO>(ufo_speed));
+        std::string w_str = int_to_str(wave_number);
+        ShowLevelInfo(w_str.c_str(), WaveName(settings.round, settings.wave, "bonus"));
     }
 
 protected:
     void Run() override {
         Level::Run();
-        if(mUFO.expired())
+        bool alive = false;
+        for(const std::weak_ptr<objects::UFO>& ufo : mUFOs)
+            alive = alive || !ufo.expired();
+        if(!alive)
             EndLevel();
     }
 private:
-    std::weak_ptr<objects::UFO> mUFO;
+    std::vector<std::weak_ptr<objects::UFO> > mUFOs;
 };
 
-Factory::Registrar<Level_1_9> reg1("level_1_9", "game", 0);
-Factory::Registrar<Level_1_9> reg2("level_2_9", "game", 1);
-Factory::Registrar<Level_1_9> reg3("level_3_9", "game", 2);
+Factory::Registrar<Level_1_9> reg1("level_1_9", "game", 9);
+Factory::Registrar<Level_1_9> reg2("level_2_9", "game", 19);
+Factory::Registrar<Level_1_9> reg3("level_3_9", "game", 29);
+Factory::Registrar<Level_1_9> reg4("level_4_9", "game", 39);
+Factory::Registrar<Level_1_9> reg5("level_5_9", "game", 49);
+Factory::Registrar<Level_1_9> reg6("level_6_9", "game", 59);
+Factory::Registrar<Level_1_9> reg7("level_7_9", "game", 69);
+Factory::Registrar<Level_1_9> reg8("level_8_9", "game", 79);
+Factory::Registrar<Level_1_9> reg9("level_9_9", "game", 89);
+Factory::Registrar<Level_1_9> reg10("level_10_9", "game", 99);
 
 } // namespace levels
 } // namespace oci

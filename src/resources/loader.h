@@ -23,6 +23,7 @@
 
 // IWYU pragma: no_include <__fwd/string_view.h>
 #include <memory>
+#include <string>
 #include <string_view> // IWYU pragma: keep
 #include <vector>
 
@@ -34,6 +35,11 @@ namespace resources {
         static ResourceLoader& Instance() { return mInstance; }
 
         std::vector<char> GetData(std::string_view resource_name);
+        bool TryGetData(std::string_view resource_name, std::vector<char>& out);
+
+        bool IsFullVersion();
+        std::string PrimaryArchiveName();
+        void SetPreferredDat(std::string_view path);
 
     private:
         ResourceLoader();
@@ -43,6 +49,7 @@ namespace resources {
 
         class Impl;
         std::unique_ptr<Impl> mImpl;
+        std::string mPreferredDat;
         static ResourceLoader mInstance;
     };
 

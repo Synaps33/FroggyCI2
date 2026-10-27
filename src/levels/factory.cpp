@@ -36,7 +36,7 @@ Factory& Factory::Instance() {
 
 void Factory::Build(std::string_view obj_name) {
     ObjectsMap::iterator iter = mObjects.find(obj_name);
-    if(iter == mObjects.end()) [[unlikely]]
+    if(iter == mObjects.end()) 
         CriticalError("Cannot find level object by name \"", obj_name, '"');
     iter->second->Build();
 }

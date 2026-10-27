@@ -35,7 +35,7 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <numbers>
+#include <utils/compat.h>
 #include <string_view>
 
 namespace oci {
@@ -46,8 +46,8 @@ namespace {
 } // namespace
 
 void Boss1::Init(const Vector2f& position, const Vector2f& destination,
-                 float speed) {
-    AnimatedCollisionObject::Init("boss1.xml", position, 50);
+                 float speed, int health, const char* sprite) {
+    AnimatedCollisionObject::Init(sprite, position, health);
     mRealPosition = position;
     mAbsoluteSpeed = speed;
     mode = 0;

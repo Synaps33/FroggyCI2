@@ -21,6 +21,8 @@
 
 #include "state.h"
 
+#include <levels/manager.h>
+
 namespace oci {
 
 State& State::Instance() {
@@ -36,6 +38,37 @@ void State::Reset() {
     mScore = 0;
     mLives = 3;
     mMissiles = 3;
+}
+
+void State::Restore(int score, int lives, int missiles) {
+    mScore = score;
+    mLives = lives;
+    mMissiles = missiles;
+}
+
+void State::IncScore(int score) {
+    mScore += score;
+    levels::Manager::Instance().RequestSave();
+}
+
+void State::AddMissile() {
+    ++mMissiles;
+    levels::Manager::Instance().RequestSave();
+}
+
+void State::RemoveMissile() {
+    --mMissiles;
+    levels::Manager::Instance().RequestSave();
+}
+
+void State::AddLive() {
+    ++mLives;
+    levels::Manager::Instance().RequestSave();
+}
+
+void State::RemoveLive() {
+    --mLives;
+    levels::Manager::Instance().RequestSave();
 }
 
 } // namespace oci

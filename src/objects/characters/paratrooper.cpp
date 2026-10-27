@@ -40,12 +40,13 @@
 namespace oci {
 namespace objects {
 
-static const float CHICKEN_SPEED = 2.0f;
-
-void Paratrooper::Init(const Vector2f& position, float Speed, int p, short health) {
+void Paratrooper::Init(const Vector2f& position, float Speed, int p, short health,
+                       Chicken::Type type) {
     AnimatedCollisionObject::Init("umbrella.xml", position, health);
     MaxBombingPeriod = p;
     speed = Speed;
+    mSpawnSpeed = Speed;
+    mChickenType = type;
     SetFrame(std::rand() % FramesCount());
     time = std::rand() % MaxBombingPeriod;
 }
@@ -75,7 +76,7 @@ void Paratrooper::OnCollision(const CollisionObjectInfo& collisedWith) {
             State::Instance().IncScore(1000);
             std::weak_ptr<RandomChicken> chicken(
                 Storage().CreateObject<RandomChicken>(
-                    getPosition(), MaxBombingPeriod, Chicken::tCyan, 1, CHICKEN_SPEED)
+                    getPosition(), MaxBombingPeriod, mChickenType, 1, mSpawnSpeed)
                 );
             if(mOnCreateRandomChickenCallback)
                 mOnCreateRandomChickenCallback(chicken);

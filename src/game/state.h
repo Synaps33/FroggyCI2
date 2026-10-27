@@ -28,17 +28,18 @@ public:
     static State& Instance();
 
     int Score() const { return mScore; }
-    void IncScore(int score) { mScore += score; }
+    void IncScore(int score);
 
     int Missiles() const { return mMissiles; }
-    void AddMissile() { ++mMissiles; }
-    void RemoveMissile() { --mMissiles; }
+    void AddMissile();
+    void RemoveMissile();
 
     int Lives() const { return mLives; }
-    void AddLive() { ++mLives; }
-    void RemoveLive() { --mLives; }
+    void AddLive();
+    void RemoveLive();
 
     void Reset();
+    void Restore(int score, int lives, int missiles);
 
 private:
     State();

@@ -28,7 +28,6 @@
 #include "core/vector2.h"
 #include "objects/base/animated_collision_object.h"
 
-#include <compare>
 #include <string_view>
 
 namespace oci {

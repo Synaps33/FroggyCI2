@@ -108,7 +108,7 @@ void SolarSystem::Init(float /*x0*/, float /*y0*/, short planets) {
 int SolarSystem::GetPlanetHeight(short ind) {
     assert(ind >= PLANET_IND_SUN && ind <= PLANET_IND_PLUTO);
     std::shared_ptr<objects::Sprite> planet(mPlanets[ind].lock());
-    if(!planet) [[unlikely]]
+    if(!planet) 
         CriticalError("attempt to access to a non-existent planet (index: ", ind, ')');
     return planet->GetHeight();
 }

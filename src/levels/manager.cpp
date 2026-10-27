@@ -23,6 +23,14 @@
 
 #include "factory.h"
 #include "interface/interface.h"
+#include "wave_loader.h"
+#include "wave_settings.h"
+
+#include <game/savegame.h>
+#include <audio/player.h>
+#include <core/boot_log.h>
+#include <core/vector2.h>
+#include <core/window.h>
 #include <context/context.h>
 #include <context/manager.h>
 #include <context/object_storage.h>
@@ -31,10 +39,18 @@
 #include <objects/characters/player_ship.h>
 
 #include <iostream>
-#include <string_view>
+#include <string>
+#include <vector>
 
 namespace oci {
 namespace levels {
+
+static inline std::string int_to_str(int v) {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", v);
+    return std::string(b);
+}
+
 
 Manager& Manager::Instance() {
     static Manager manager;
@@ -45,25 +61,43 @@ Manager::Manager() : current_level_index(0) {
 }
 
 namespace {
-    const char* levels[] = {
-        "intro_0",
-        "start_round_1",
-        "level_1_1",
-        "level_1_2",
-        "level_1_3",
-        "level_1_4",
-        "level_1_5",
-        "level_1_6",
-        "level_1_7",
-        "level_1_8",
-        "level_1_9",
-        "level_1_10",
-        "intro_1",
-        "game_over"
+
+
+    struct LevelEntry {
+        std::string name;
+        int round;
+        int wave;
+        bool is_wave;
     };
+
+    std::vector<LevelEntry> s_level_sequence;
+
+    void BuildLevelSequence() {
+        if(!s_level_sequence.empty())
+            return;
+
+        s_level_sequence.push_back({"intro_0", 1, 0, false});
+        s_level_sequence.push_back({"start_round_1", 1, 0, false});
+
+        for(int round = 1; round <= 10; ++round) {
+            std::string prefix = "level_" + int_to_str(round) + "_";
+            for(int wave = 1; wave <= 10; ++wave) {
+                s_level_sequence.push_back({prefix + int_to_str(wave), round, wave, true});
+            }
+            if(round < 10) {
+                s_level_sequence.push_back({"intro_1", round, 0, false});
+                s_level_sequence.push_back({"start_round_" + int_to_str(round + 1), round + 1, 0, false});
+            }
+        }
+        s_level_sequence.push_back({"game_over", 10, 0, false});
+    }
 }
 
 void Manager::NewGame() {
+    BuildLevelSequence();
+    audio::StopAll();
+    SaveGame::Invalidate();
+    mGameOver = false;
     context::Manager::Instance().KillContext("game");
     context::Manager::Instance().KillContext("intro");
     context::ObjectStorage& game_global_storage =
@@ -75,55 +109,22 @@ void Manager::NewGame() {
 }
 
 void Manager::SelectLevel(int level_index) {
+    BuildLevelSequence();
     std::cout << "SelectLevel " << level_index << std::endl;
-    Factory::Instance().Build(levels[level_index]);
-    current_level_index = level_index;
-/*    ObjectsStorage& storage = LevelLocalStorage();
-    switch(level_index) {
-//        case 0: new CWarp(10); break;
-//        case 1: new CWarp(9); break;
-//        case 2: new CWarp(8); break;
-//        case 3: new CWarp(7); break;
-//        case 4: new CWarp(6); break;
-//        case 5: new CWarp(5); break;
-//        case 6: new CWarp(4); break;
-//        case 7: new CWarp(3); break;
-//        case 8: new CWarp(2); break;
-//        case 9: new CWarp(1); break;
-//        case 10: new CWarp(0); break;
-*/
-/*        case 8:   new CLevel_1_8(0);            break;
-        case 9:   new CLevel_1_9(0);            break;
-        case 10:  new CLevel_1_10();            break;
-case 11: new CEndGame(); break;
-//        case 11:  new CWarp(PLANET_IND_PLUTO);  break;
+    if(level_index >= static_cast<int>(s_level_sequence.size())) {
+        GameOver();
+        return;
+    }
 
-        case 12:  new CIntro_1();               break;
-        case 13:  new CLevel_2_1();             break;
-        case 14:  new CLevel_2_2(0);            break;
-        case 15:  new CLevel_2_2(1);            break;
-        case 16:  new CLevel_2_4();             break;
-        case 17:  new CLevel_2_5();             break;
-        case 18:  new CLevel_2_6();             break;
-        case 19:  new CLevel_2_7();             break;
-        case 20:  new CLevel_1_8(1);            break;
-        case 21:  new CLevel_1_9(1);            break;
-        case 22:  new CLevel_2_10();            break;
-        case 23:  new CWarp(PLANET_IND_NEPTUNE);break;
-        case 24:  new CIntro_2();               break;
-        case 25:  new CLevel_3_1();             break;
-        case 26:  new CLevel_3_2(0);            break;
-        case 27:  new CLevel_3_2(1);            break;
-        case 28:  new CLevel_3_4();             break;
-        case 29:  new CLevel_3_5(0);            break;
-        case 30:  new CLevel_3_6();             break;
-        case 31:  new CLevel_3_5(1);            break;
-        case 32:  new CLevel_3_8();             break;
-        case 33:  new CLevel_1_9(2);            break;
-        case 34:  new CLevel_3_10();            break;
-        case 35:  new CWarp(PLANET_IND_URANUS); break;
-        default: new CEndGame();*/
-//    }
+    const LevelEntry& entry = s_level_sequence[level_index];
+    if(entry.is_wave) {
+        CurrentWave() = WaveLoader::Instance().GetPlanet(entry.round);
+        CurrentWave().wave = entry.wave;
+    }
+    Factory::Instance().Build(entry.name.c_str());
+    current_level_index = level_index;
+    if(level_index >= 1 && level_index < static_cast<int>(s_level_sequence.size()) - 1)
+        SaveProgress();
 }
 
 void Manager::CreateNextLevel() {
@@ -131,13 +132,89 @@ void Manager::CreateNextLevel() {
 }
 
 void Manager::GameOver() {
+    audio::StopLoops();
+    SaveGame::Invalidate();
+    mGameOver = true;
     Factory::Instance().Build("game_over");
 }
 
 objects::PlayerShip& Manager::GetPlayerShip() const {
-    if(!mPlayerShip) [[unlikely]]
+    if(!mPlayerShip) 
         CriticalError("Player ship is not created");
     return *mPlayerShip;
+}
+
+bool Manager::CanSave() const {
+    return !mGameOver && mPlayerShip &&
+           current_level_index >= 1 &&
+           current_level_index < static_cast<int>(s_level_sequence.size()) - 1;
+}
+
+void Manager::SaveProgress() {
+    if(!CanSave())
+        return;
+
+    SaveData data;
+    data.valid = true;
+    data.score = State::Instance().Score();
+    data.lives = State::Instance().Lives();
+    data.missiles = State::Instance().Missiles();
+    mPlayerShip->ExportGun(data.gun_type, data.gun_level);
+    data.level = current_level_index;
+    SaveGame::Write(data);
+}
+
+void Manager::RequestSave() {
+    if(CanSave())
+        SaveGame::MarkDirty();
+}
+
+void Manager::TickAutosave() {
+    if(!SaveGame::IsDirty())
+        return;
+    static int counter = 0;
+    if(++counter >= 50) {
+        counter = 0;
+        SaveProgress();
+    }
+}
+
+void Manager::FlushProgress() {
+    if(SaveGame::IsDirty())
+        SaveProgress();
+}
+
+void Manager::ContinueGame() {
+    BuildLevelSequence();
+    SaveData data;
+    if(!SaveGame::Load(data) || !data.valid) {
+        BootLog("continue: no valid save");
+        NewGame();
+        return;
+    }
+    BootLog("continue: level=%d score=%d lives=%d missiles=%d gun=%d/%d",
+            data.level, data.score, data.lives, data.missiles,
+            data.gun_type, data.gun_level);
+
+    context::Manager::Instance().KillContext("game");
+    context::Manager::Instance().KillContext("intro");
+
+    audio::StopAll();
+    mGameOver = false;
+    State::Instance().Restore(data.score, data.lives, data.missiles);
+
+    context::ObjectStorage& game_global_storage =
+        context::Manager::Instance().GetContext("game").GetStorage("global");
+    mPlayerShip = game_global_storage.CreateObject<objects::PlayerShip>();
+    game_global_storage.CreateObject<Interface>();
+    mPlayerShip->ImportGun(data.gun_type, data.gun_level);
+    mPlayerShip->setPosition(Vector2f(Window::Instance().getSize().x / 2.0f,
+                                      objects::PlayerShip::DEFAULT_Y_POS()));
+
+    int idx = data.level;
+    if(idx < 1 || idx >= static_cast<int>(s_level_sequence.size()) - 1)
+        idx = 1;
+    SelectLevel(idx);
 }
 
 } // namespace levels

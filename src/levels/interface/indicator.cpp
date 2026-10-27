@@ -40,15 +40,15 @@ using namespace objects;
 using namespace modifiers;
 
 void Indicator::Init(std::string_view sprite_name,
-                     const Vector2f& position) {
+                     const Vector2f& position, int step) {
     mText = Storage().CreateObject<Hidden<Text> >(
-        "", Vector2f(position.x + 17, position.y),
+        "", Vector2f(position.x + step + 4, position.y),
         Font::GetFont("small.xml"), Text::haRight, Text::vaCenter
     );
     for(int i = 0; i < 3; ++i)
         mIcons[i] =
             Storage().CreateObject<Hidden<CommonSprite<Visible::dpForeground> > >(
-                sprite_name, Vector2f(position.x + i * 12, position.y));
+                sprite_name, Vector2f(position.x + i * step, position.y));
 }
 
 void Indicator::Run() {
@@ -62,7 +62,9 @@ void Indicator::Run() {
         mIcons[1]->Hide();
         mIcons[2]->Hide();
         mText->Show();
-        mText->SetText(std::to_string(value));
+        char b[16];
+        snprintf(b, sizeof(b), "%d", value);
+        mText->SetText(b);
     }
 }
 

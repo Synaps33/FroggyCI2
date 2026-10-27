@@ -38,7 +38,7 @@ namespace interface {
 
 class Indicator : public objects::Active {
 public:
-    void Init(std::string_view sprite_name, const Vector2f& position);
+    void Init(std::string_view sprite_name, const Vector2f& position, int step = 24);
     void Run() override;
 
 protected:

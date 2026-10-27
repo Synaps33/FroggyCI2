@@ -34,7 +34,7 @@ namespace interface {
 
 void MissilesIndicator::Init() {
     const Vector2u wndSize = Window::Instance().getSize();
-    Indicator::Init("iconbomb.xml", Vector2f(wndSize.x - 110, wndSize.y - 10));
+    Indicator::Init("iconbomb.xml", Vector2f(wndSize.x - 130, wndSize.y - 8), 16);
 }
 
 int MissilesIndicator::GetValue() const {

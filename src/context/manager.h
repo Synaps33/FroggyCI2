@@ -24,6 +24,7 @@
 #include "context.h"
 
 // IWYU pragma: no_include <__fwd/string_view.h>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 
@@ -46,7 +47,7 @@ private:
     Manager() = default;
 
     Context* mActiveContext = nullptr;
-    typedef std::unordered_map<std::string_view, Context> ContextsMap;
+    typedef std::unordered_map<std::string, Context> ContextsMap;
     ContextsMap mContexts;
     static Manager mInstance;
 };

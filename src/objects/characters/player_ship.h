@@ -44,8 +44,11 @@ public:
 
     void CreateShield();
 
+    void ExportGun(int& type, int& level) const;
+    void ImportGun(int type, int level);
+
     static int DEFAULT_Y_POS() {
-        return Window::Instance().getSize().y - 80;
+        return Window::Instance().getSize().y - 44;
     }
 
 protected:

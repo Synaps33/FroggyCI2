@@ -38,7 +38,7 @@
 // IWYU pragma: no_include <__math/trigonometric_functions.h>
 #include <cmath>
 #include <cstdlib>
-#include <numbers>
+#include <utils/compat.h>
 #include <string_view>
 
 namespace oci {

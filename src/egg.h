@@ -37,8 +37,8 @@ class Egg : public AnimatedCollisionObject, public Active {
 public:
     void Init(const Vector2f& position);
 
-    virtual CollisionType GetCollisionType() const override { return ctEnemyBullet; };
-    virtual int CollisionWith() const override { return ctPlayerShip; };
+    virtual CollisionType GetCollisionType() const override { return in_floor ? static_cast<CollisionType>(0) : ctEnemyBullet; };
+    virtual int CollisionWith() const override { return in_floor ? 0 : ctPlayerShip; };
     virtual DrawPriority GetDrawPriority() const override { return dpEgg; }
 
 private:

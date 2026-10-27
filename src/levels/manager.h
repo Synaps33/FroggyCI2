@@ -42,6 +42,7 @@ public:
     Manager& operator= (const Manager&) = delete;
 
     void NewGame();
+    void ContinueGame();
     /// запускает уровень с номером level_index
     void SelectLevel(int level_index);
     /// функция запускает следующий уровень
@@ -50,11 +51,19 @@ public:
 
     objects::PlayerShip& GetPlayerShip() const;
 
+    // Persistent progress (continue.sav)
+    void RequestSave();
+    void TickAutosave();
+    void FlushProgress();
+
 private:
+    void SaveProgress();
+    bool CanSave() const;
     Manager();
 
     /// номер текущего уровня
     int current_level_index;
+    bool mGameOver = false;
     std::shared_ptr<objects::PlayerShip> mPlayerShip;
 };
 

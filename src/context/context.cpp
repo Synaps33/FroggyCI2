@@ -169,10 +169,11 @@ void Context::CollideAll(CollisionType collision_type, int power) {
 
 ObjectStorage& Context::GetStorage(std::string_view name) {
     Context::Impl::ObjectsMap& storages = mImpl->mObjectStorages;
-    Context::Impl::ObjectsMap::const_iterator iter = storages.find(name);
+    std::string key(name);
+    Context::Impl::ObjectsMap::const_iterator iter = storages.find(key);
     if(iter == storages.end())
         iter = storages.insert(
-                   std::make_pair(name, std::unique_ptr<ObjectStorage>(new ObjectStorage(*this)))
+                   std::make_pair(std::move(key), std::unique_ptr<ObjectStorage>(new ObjectStorage(*this)))
                ).first;
     return *iter->second;
 }

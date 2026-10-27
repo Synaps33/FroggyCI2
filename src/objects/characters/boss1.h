@@ -26,6 +26,7 @@
 #include <objects/base/animated_collision_object.h>
 #include <objects/base/collision_object_types.h>
 
+
 namespace oci {
 namespace objects {
 
@@ -38,7 +39,8 @@ public:
         \param  destination  Координаты точки, в которую изначально летит кура
         \param  speed Скорость курицы
     */
-    void Init(const Vector2f& position, const Vector2f& destination, float speed);
+    void Init(const Vector2f& position, const Vector2f& destination, float speed,
+              int health = 50, const char* sprite = "boss1.xml");
 
     virtual CollisionType GetCollisionType() const override { return ctChicken; }
     virtual int CollisionWith() const override { return ctFriendBullets | ctPlayerShip; }
@@ -52,7 +54,7 @@ protected:
     /// заданную точку
     /// \return false, если кура уже находится близко к этой точке
     bool CalculateSpeed();
-    void Fire();
+    virtual void Fire();
 
 private:
     Vector2f mDestination;

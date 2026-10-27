@@ -30,6 +30,7 @@
 #include <core/texture.h>
 #include <core/vector2.h>
 #include <core/window.h>
+#include <resources/path_helper.h>
 
 #include <string>
 
@@ -52,10 +53,11 @@ public:
 private:
     Gradient() {
         Image img;
-        if(!img.loadFromFile("res/images/gradient.bmp")) [[unlikely]]
-            CriticalError("Can not load image file \"res/images/gradient.bmp\"");
+        std::string path = ResolvePath("res/images/gradient.bmp");
+        if(!img.loadFromFile(path)) 
+            CriticalError("Can not load image file \"res/images/gradient.bmp\" at \"", path, "\"");
         img.createMaskFromColor(Color::White);
-        if(!mTexture.loadFromImage(img)) [[unlikely]]
+        if(!mTexture.loadFromImage(img)) 
             CriticalError("Can't create a texture");
         setTexture(mTexture, true);
     }
@@ -93,7 +95,7 @@ void UnshadeScreen::Draw() {
 }
 
 void UnshadeScreen::Run() {
-    mPosition += Gradient::Instance().getSize().y;
+    mPosition += 2 * Gradient::Instance().getSize().y;
     unsigned boundary = Window::Instance().getSize().x + Gradient::Instance().getSize().x;
     if(++mPosition > boundary)
         Storage().KillObject(this);

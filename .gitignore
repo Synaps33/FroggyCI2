@@ -1,0 +1,35 @@
+# Game data - never commit purchased/ripped game archives
+*.dat
+*.dat.*
+ChickenInvaders2.dat
+ChickenInvaders2demo.dat
+
+# Build artifacts
+build_host/
+build_sf2000/
+build_mips/
+*.o
+*.a
+runner/test_runner
+runner/test_runner_mips
+oci_libretro_sf2000.a
+
+# Generated / local output
+dist/
+/screenshots/
+*.ppm
+*.sav
+video.cfg
+oci_boot.log
+card_ci2_*.ppm
+*.zip
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+TEST_REPORT.md
+
+# Python cache
+__pycache__/
+*.pyc

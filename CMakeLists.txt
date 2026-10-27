@@ -23,6 +23,7 @@ set(sources
     src/core/rectangle_shape.cpp
     src/core/sprite.cpp
     src/core/texture.cpp
+    src/core/video_settings.cpp
     src/core/window.cpp
     src/diagnostics/benchmark/benchmark.cpp
     src/diagnostics/fps.cpp
@@ -52,6 +53,8 @@ set(sources
     src/levels/loader.cpp
     src/levels/manager.cpp
     src/levels/start_round.cpp
+    src/levels/wave_loader.cpp
+    src/levels/wave_settings.cpp
     src/main.cpp
     src/menu/background_controller.cpp
     src/menu/cursor.cpp
@@ -69,7 +72,9 @@ set(sources
     src/objects/bonus/upgrade_gun.cpp
     src/objects/characters/asteroid.cpp
     src/objects/characters/boss1.cpp
+    src/objects/characters/big_chicken.cpp
     src/objects/characters/chicken.cpp
+    src/objects/characters/mother_hen.cpp
     src/objects/characters/jumping_asteroid.cpp
     src/objects/characters/paratrooper.cpp
     src/objects/characters/player_ship.cpp
@@ -90,7 +95,11 @@ set(sources
     src/objects/particles/spark.cpp
     src/objects/text/subtitle_text.cpp
     src/objects/text/text.cpp
+    src/resources/image_codec.cpp
     src/resources/loader.cpp
+    src/resources/ogg_decoder.cpp
+    src/resources/stb_image_impl.cpp
+    src/resources/stb_vorbis_impl.cpp
     src/solar_system.cpp
     src/utils/fast_trigonometry.cpp
 )

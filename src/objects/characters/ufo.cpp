@@ -33,7 +33,7 @@
 #include <objects/gun/bullet.h>
 #include <objects/particles/smoke.h>
 
-#include <numbers>
+#include <utils/compat.h>
 #include <string_view>
 
 namespace oci {

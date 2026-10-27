@@ -33,6 +33,9 @@ public:
 
     static void SwitchToMenu();
     static void InitMenu();
+    static void OpenOptionsMenu();
+    static void CloseOptionsMenu();
+    static void ProcessPending();
 };
 
 } // namespace oci

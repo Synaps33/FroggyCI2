@@ -29,17 +29,27 @@
 #include <context/object_storage.h>
 #include <core/vector2.h>
 #include <core/window.h>
+#include <font/font.h>
 #include <levels/factory.h>
 #include <levels/manager.h>
 #include <objects/characters/player_ship.h>
 #include <objects/effects/unshade_screen.h>
+#include <objects/modifiers/expiring.h>
 #include <objects/particles/smoke.h>
+#include <objects/text/text.h>
 
 #include <cstdlib>
 #include <string_view>
 
 namespace oci {
 namespace levels {
+
+static inline std::string int_to_str(int v) {
+    char b[16];
+    snprintf(b, sizeof(b), "%d", v);
+    return std::string(b);
+}
+
 
 using namespace std::literals;
 
@@ -52,14 +62,25 @@ const float BACKGROUND_FINISH_SPEED = 8.0f;
 const float BACKGROUND_DECELERATION = -0.2;
 const int LEVEL_TIME = 50;
 
-Factory::Registrar<StartRound> reg("start_round_1", "game", ""sv);
+Factory::Registrar<StartRound> reg1("start_round_1", "game", ""sv);
+Factory::Registrar<StartRound> reg2("start_round_2", "game", "neptune"sv);
+Factory::Registrar<StartRound> reg3("start_round_3", "game", "uranus"sv);
+Factory::Registrar<StartRound> reg4("start_round_4", "game", "saturn"sv);
+Factory::Registrar<StartRound> reg5("start_round_5", "game", "jupiter"sv);
+Factory::Registrar<StartRound> reg6("start_round_6", "game", "asteroid belt"sv);
+Factory::Registrar<StartRound> reg7("start_round_7", "game", "mars"sv);
+Factory::Registrar<StartRound> reg8("start_round_8", "game", "earth"sv);
+Factory::Registrar<StartRound> reg9("start_round_9", "game", "venus"sv);
+Factory::Registrar<StartRound> reg10("start_round_10", "game", "mercury"sv);
+Factory::Registrar<StartRound> reg11("start_round_11", "game", "sun"sv);
 
 } // namespace
 
 StartRound::StartRound() : mDY(SHIP_START_SPEED), mTime(0) {}
 
-void StartRound::Init(std::string_view /*round_title*/) {
+void StartRound::Init(std::string_view round_title) {
     Level::Init("start_round");
+    mPlanetTitle = std::string(round_title);
     Storage().CreateObject<objects::UnshadeScreen>();
     mBackgroundController = Storage().CreateObject<SimpleController>();
     mBackgroundController->SetSpeed(Vector2f(0, BACKGROUND_INITIAL_SPEED));
@@ -78,10 +99,10 @@ void StartRound::Run() {
     int smoke_cnt = std::rand() % 5;
     while(smoke_cnt-- > 0)
         Storage().CreateObject<objects::CSmoke>(
-            Vector2f(ship.getPosition().x + std::rand() % 20 - 10, ship.getPosition().y + 15 + std::rand() % 10), // позиция
-            mBackgroundController->GetSpeed().y / 10.0f,  // скорость
-            180 + 4 * (std::rand() % 20 - 10), // распределение углов
-            1.0f / (3 + std::rand() % 15) // скорость анимации
+            Vector2f(ship.getPosition().x + std::rand() % 20 - 10, ship.getPosition().y + 15 + std::rand() % 10),
+            mBackgroundController->GetSpeed().y / 10.0f,
+            180 + 4 * (std::rand() % 20 - 10),
+            1.0f / (3 + std::rand() % 15)
         );
 
     if(ship.getPosition().y <= objects::PlayerShip::DEFAULT_Y_POS()) {
@@ -96,6 +117,20 @@ void StartRound::Run() {
     mBackgroundController->Accelerate(0, BACKGROUND_DECELERATION);
     if(mBackgroundController->GetSpeed().y < BACKGROUND_FINISH_SPEED)
         mBackgroundController->SetSpeed(Vector2f(0, BACKGROUND_FINISH_SPEED));
+
+    if(mTime == 10 && !mPlanetTitle.empty()) {
+        const int window_center = Window::Instance().getSize().x / 2;
+        Storage().CreateObject<objects::modifiers::Expiring<objects::Text>>(
+            35, "on approach to",
+            Vector2f(window_center, 120),
+            Font::GetFont("medium.xml"),
+            objects::Text::haCenter, objects::Text::vaCenter);
+        Storage().CreateObject<objects::modifiers::Expiring<objects::Text>>(
+            35, mPlanetTitle,
+            Vector2f(window_center, 155),
+            Font::GetFont("big.xml"),
+            objects::Text::haCenter, objects::Text::vaCenter);
+    }
 
     if(mTime == 15)
         Storage().CreateObject<audio::ControllerHolder>(
